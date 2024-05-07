@@ -1,0 +1,222 @@
+#
+# File:    photonlibrary_builder_icarus.fcl
+# Purpose: main configuration file for simulation of scintillation visibility
+# Author:  Gianluca Petrillo (petrillo@slac.stanford.edu)
+# Date:    July 16, 2020
+# Version: 1.0
+#
+# This configuration is base for the simulation of a few voxels of the
+# photon visibility lookup table ("photon library") for ICARUS.
+#
+#
+# This is the merge and optimization of `icarus_prodsingle_buildopticallibrary.fcl`
+# from `icaruscode` `v08_57_00` plus `prova_source.fcl`.
+#
+#
+
+#include "services_dune.fcl"
+#include "backtrackerservice.fcl"
+#include "particleinventoryservice.fcl"
+#include "singles.fcl"
+#include "largeantmodules.fcl"
+#include "detsimmodules.fcl"
+#include "opticaldetectormodules_dune.fcl"
+#include "opticaldetectorservices_dune.fcl"
+#include "photolibbuild_services_dune.fcl"
+#include "photpropservices_dune.fcl"
+#include "lightsource.fcl"
+#include "LArG4_dune.fcl"
+#include "services_refactored_pdune.fcl"
+
+# services
+#include "services_refactored_pdune.fcl"
+
+# modules
+#include "opticaldetectormodules.fcl"
+#include "opticaldetectorservices.fcl"
+#include "LArG4_dune.fcl"
+
+process_name: LibraryBuild
+
+################################################################################
+###  service configuration
+################################################################################
+
+services: {
+
+  TFileService: { fileName: "Photonlibrary_dunevd_xenon.root" }
+  # events are generated anew each time: default per-event policy is ineffective
+  NuRandomService:    @local::random_NuRandomService
+  RandomNumberGenerator: {} #ART native random number generator
+
+  OpDetResponse:      @local::standard_opdetresponse
+
+  SpaceChargeService: @erase
+  @table::dunefd_photolibbuild_services
+  @table::dunefdvd_simulation_services
+} # services
+
+# services changes.
+services.NuRandomService.policy: "random"
+services.Geometry.DisableWiresInG4: true # we need to account for wire shadow, but dunevd does not have wire-planes...
+
+services.Geometry.GDML: "protodunehd_v6_refactored.gdml"
+services.Geometry.ROOT: "protodunehd_v6_refactored.gdml"
+services.Geometry.SortingParameters.DetectorVersion: "protodunehd_v6_refactored"
+services.Geometry.Name: "protodunehd_v6_refactored"
+services.LArG4Detector.gdmlFileName_: "protodunehd_v6_refactored.gdml"
+
+#setting the optical properties of the materials in the geometry:
+services.LArPropertiesService.ReflectiveSurfaceEnergies:         [ 1.77, 2.0675, 2.481, 2.819, 2.953, 3.1807, 3.54, 4.135, 4.962, 5.39, 6.70, 7.09, 7.51, 9., 9.69, 10.51 ] # 6.70, 7.09, 7.51 is xenon region, 9., 9.69, 10.51 is argon region.
+services.LArPropertiesService.ReflectiveSurfaceNames:            [ "STEEL_STAINLESS_Fe7Cr2Ni", "Copper_Beryllium_alloy25", "G10", "vm2000", "ALUMINUM_Al" ]
+services.LArPropertiesService.ReflectiveSurfaceReflectances:[ [0.66, 0.64, 0.62, 0.60, 0.59, 0.57, 0.53, 0.47, 0.39, 0.36,
+                                                               0.40, 0.40, 0.40, 0.30, 0.30, 0.30],
+                                                               [ 0.902, 0.841, 0.464, 0.379, 0.345, 0.299, 0.287, 0.264, 0.337, 0.3, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 ],
+                                                               [ 0.393, 0.405, 0.404, 0.352, 0.323, 0.243, 0.127, 0.065, 0.068, 0.068, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 ],
+                                                               [ 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25,
+                                                               0.12, 0.12, 0.12, 0.06, 0.06, 0.06 ],
+                                                               [ 0.66, 0.64, 0.62, 0.60, 0.59, 0.57, 0.53, 0.47, 0.39, 0.36,
+                                                               0.70, 0.70, 0.70, 0.70, 0.70, 0.70]
+                                                            ]
+# Rayleigh scattering length, 99.9cm @ 128nm
+# Argon energy: 9.68750 @ 128nm
+# Xenon energy: 7.08571 @ 175nm
+services.LArPropertiesService.RIndexEnergies: [1.18626, 1.68626, 2.18626, 2.68626, 3.18626, 3.68626, 4.18626, 4.68626, 5.18626, 5.68626, 6.18626, 6.68626, 7.18626, 7.68626, 8.18626, 8.68626, 9.18626, 9.68626, 10.1863, 10.6863, 11.1863]
+services.LArPropertiesService.RIndexSpectrum: [1.24664, 1.2205, 1.22694, 1.22932, 1.23124, 1.23322, 1.23545, 1.23806, 1.24116, 1.24489, 1.24942, 1.25499, 1.26197, 1.2709, 1.28263, 1.29865, 1.32169, 1.35747, 1.42039, 1.56011, 2.16626]
+services.LArPropertiesService.RayleighEnergies: [1.18626, 1.68626, 2.18626, 2.68626, 3.18626, 3.68626, 4.18626, 4.68626, 5.18626, 5.68626, 6.18626, 6.68626, 7.18626, 7.68626, 8.18626, 8.68626, 9.18626, 9.68626, 10.1863, 10.6863, 11.1863]
+services.LArPropertiesService.RayleighSpectrum: [1200800, 390747, 128633, 54969.1, 27191.8, 14853.7, 8716.9, 5397.42, 3481.37, 2316.51, 1577.63, 1092.02, 763.045, 534.232, 371.335, 252.942, 165.38, 99.9003, 51.2653, 17.495, 0.964341]
+
+
+# TPB absorption spectrum, need to modify as default cuts off before Xe doped photons at 167nm - extended cutoff point to 250nm
+services.LArPropertiesService.TpbAbsorptionEnergies: [0.05,1.77,2.0675, 4.96, 5.51, 7.42, 7.75, 8.16, 8.73, 9.78,10.69, 50.39]
+services.LArPropertiesService.TpbAbsorptionSpectrum: [100000.0,100000.0, 100000.0,0.001,0.00000000001, 0.00000000001,0.00000000001,0.00000000001, 0.00000000001, 0.00000000001, 0.00000000001, 0.00000000001]
+
+
+#the information below is used for the "simple boundary simulation". We are not using it (values irrelevant for us)
+services.LArPropertiesService.ReflectiveSurfaceDiffuseFractions: [
+                                                     [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
+                                                     [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
+                                                     [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
+                                                     [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
+                                                     [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ] ]
+
+
+# changing the absorption length for xenon to be 80m.
+services.LArPropertiesService.AbsLengthEnergies: [4,5,6,6.5,7,7.5,8,9,10,11]
+services.LArPropertiesService.AbsLengthSpectrum: [2000,2000,2000,8000,8000,8000,2000,2000,2000,2000]
+
+services.LArG4Parameters: { # customization
+
+  @table::services.LArG4Parameters
+  # enable this custom LArG4 physics list
+  # with optical physics instead of fast scintillation
+  UseCustomPhysics: true
+  EnabledPhysics: [
+    "Em",
+    "Optical",            # <== this is the important one!
+    "SynchrotronAndGN",
+    "Ion",
+    "Hadron",
+    "Decay",
+    "HadronElastic",
+    "Stopping",
+    "NeutronTrackingCut"
+    ]
+
+  # store only the count of photons per channel, not the single photons
+  UseLitePhotons: true
+
+  # avoid unnecessary steps
+  DisableWireplanes: true
+  FillSimEnergyDeposits: false
+  NoElectronPropagation: false
+
+} # services.LArG4Parameters
+
+
+################################################################################
+###  workflow configuration
+################################################################################
+
+source:
+{
+  module_type: EmptyEvent
+  maxEvents:   3253800         # Number of events to create
+  firstRun:    1               # Run number to use for this file
+  firstEvent:  1               # number of first event in the file
+}
+
+physics: {
+
+ producers:
+ {
+   generator: @local::standard_lightsource
+   largeant:  @local::standard_largeant
+ }
+
+
+  analyzers: {
+    pmtresponse: {
+      @table::dunefd_simphotoncounter
+      Verbosity:                   0 # quiet!
+      MakeAllPhotonsTree:      false
+      MakeDetectedPhotonsTree: false
+      MakeOpDetsTree:          false
+      MakeOpDetEventsTree:     false
+      MakeLightAnalysisTree:   false
+    }
+  } # analyzers
+
+  simulate:  [ generator, largeant ]
+  analyzeIt: [ pmtresponse ]
+  stream1:  [ ]
+
+  trigger_paths: [simulate]
+  end_paths:     [analyzeIt, stream1]
+
+} # physics
+
+#
+# Optical specific module configuration:
+#
+
+# we do not save, nor create, MCParticle objects
+physics.producers.largeant.MakeMCParticles: false
+
+# photon generated per voxel.
+physics.producers.generator.N: 500000
+physics.producers.generator.P: 9.69 # 9.69 argon / 7.09 xenon.
+
+services.DetectorPropertiesService.SimpleBoundaryProcess: false
+
+services.PhotonVisibilityService: {
+  LibraryBuildJob:  true
+  DoNotLoadLibrary: true
+
+  UseCryoBoundary:  false
+  UseAutomaticVoxels:  true
+  TPCVoxelListFile: "tpc.voxels"
+  OtherVoxelListFile: "other.voxels"
+
+  XMin: -425.0     # -325 active/Non-active boundaries.
+  XMax: 425.0      # 325 active/Non-active boundaries.
+  YMin: -781.26    # -673.5 active/Non-active boundaries.
+  YMax: 781.26     # 673.5 active/Non-active boundaries.
+  ZMin: -104.0305  # 0.5 active/Non-active boundaries.
+  ZMax: 2195.6405  # 2091.11 active/Non-active boundaries.
+
+  NX:  85    # 10.00 cm voxels
+  NY:  174   # 8.98 cm voxels
+  NZ:  220   # 10.45305 cm voxels
+
+} # services.PhotonVisibilityService
+
+# for photon library generation we do not include prescale
+# (is prescale included at all except in fast optical simulation?)
+services.LArPropertiesService.ScintPreScale: 1.0
+
+
+# do not allow lightsource to write output into root file
+physics.producers.generator.FillTree: false # for efficiency
+#physics.producers.generator.FillTree: true # for testing
+
