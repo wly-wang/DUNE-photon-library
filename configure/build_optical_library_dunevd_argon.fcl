@@ -26,10 +26,11 @@
 #include "photpropservices_dune.fcl"
 #include "lightsource.fcl"
 #include "LArG4_dune.fcl"
-#include "services_refactored_pdune.fcl"
+##include "services_refactored_pdune.fcl"
 
 # services
-#include "services_refactored_pdune.fcl"
+##include "services_refactored_pdune.fcl"
+#services_dunefd_horizdrift_1x2x6.fcl
 
 # modules
 #include "opticaldetectormodules.fcl"
@@ -44,7 +45,7 @@ process_name: LibraryBuild
 
 services: {
 
-  TFileService: { fileName: "Photonlibrary_dunevd_xenon.root" }
+  TFileService: { fileName: "Photonlibrary_dune10kt_1x2x6_double_drift.root" }
   # events are generated anew each time: default per-event policy is ineffective
   NuRandomService:    @local::random_NuRandomService
   RandomNumberGenerator: {} #ART native random number generator
@@ -53,18 +54,18 @@ services: {
 
   SpaceChargeService: @erase
   @table::dunefd_photolibbuild_services
-  @table::dunefdvd_simulation_services
+  @table::dunefd_1x2x6_simulation_services
 } # services
 
 # services changes.
 services.NuRandomService.policy: "random"
 services.Geometry.DisableWiresInG4: true # we need to account for wire shadow, but dunevd does not have wire-planes...
 
-services.Geometry.GDML: "protodunehd_v6_refactored.gdml"
-services.Geometry.ROOT: "protodunehd_v6_refactored.gdml"
-services.Geometry.SortingParameters.DetectorVersion: "protodunehd_v6_refactored"
-services.Geometry.Name: "protodunehd_v6_refactored"
-services.LArG4Detector.gdmlFileName_: "protodunehd_v6_refactored.gdml"
+services.Geometry.GDML: "dune10kt_v6_refactored_1x2x6_modded_double_drift_singleVol_nowires.gdml"
+services.Geometry.ROOT: "dune10kt_v6_refactored_1x2x6_modded_double_drift_singleVol_nowires.gdml"
+services.Geometry.SortingParameters.DetectorVersion: "dune10kt_v6_refactored_1x2x6_modded_double_drift_singleVol_nowires"
+services.Geometry.Name: "dune10kt_v6_refactored_1x2x6_modded_double_drift_singleVol_nowires"
+services.LArG4Detector.gdmlFileName_: "dune10kt_v6_refactored_1x2x6_modded_double_drift_singleVol_nowires.gdml"
 
 #setting the optical properties of the materials in the geometry:
 services.LArPropertiesService.ReflectiveSurfaceEnergies:         [ 1.77, 2.0675, 2.481, 2.819, 2.953, 3.1807, 3.54, 4.135, 4.962, 5.39, 6.70, 7.09, 7.51, 9., 9.69, 10.51 ] # 6.70, 7.09, 7.51 is xenon region, 9., 9.69, 10.51 is argon region.
